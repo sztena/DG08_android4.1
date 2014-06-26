@@ -1,0 +1,19 @@
+#
+# gsensor drivers configuration
+#
+
+menuconfig Memsart_DEVICE
+	bool "Memsart DEVICE support"
+	default n	
+	help
+	  Memsart Virtual Sensor Release Note
+
+if Memsart_DEVICE
+
+config Memsart_VSRN
+  bool "Memsart_VSRN"
+	depends on Memsart_DEVICE
+	default y
+	help	 
+	  Memsart Virtual Sensor Release Note
+endif

@@ -1,0 +1,93 @@
+diff --git a/drivers/hid/usbhid/Kconfig b/drivers/hid/usbhid/Kconfig
+index 0f20fd1..5c11b35 100644
+--- a/drivers/hid/usbhid/Kconfig
++++ b/drivers/hid/usbhid/Kconfig
+@@ -44,6 +44,12 @@ config USB_HIDDEV
+ 
+ 	  If unsure, say Y.
+ 
++config USB_WIRELESS_REMOTE
++	tristate "USB 2.4G Wireless Remote support"
++	depends on USB && INPUT
++	---help---
++	  USB 2.4G Wireless Remote support
++
+ menu "USB HID Boot Protocol drivers"
+ 	depends on USB!=n && USB_HID!=y && EXPERT
+ 
+diff --git a/drivers/hid/usbhid/Makefile b/drivers/hid/usbhid/Makefile
+index db3cf31..0087406 100644
+--- a/drivers/hid/usbhid/Makefile
++++ b/drivers/hid/usbhid/Makefile
+@@ -17,4 +17,5 @@ endif
+ obj-$(CONFIG_USB_HID)		+= usbhid.o
+ obj-$(CONFIG_USB_KBD)		+= usbkbd.o
+ obj-$(CONFIG_USB_MOUSE)		+= usbmouse.o
++obj-$(CONFIG_USB_WIRELESS_REMOTE) += usb_wireless_remote.o
+ 
+diff --git a/drivers/hid/usbhid/hid-core.c b/drivers/hid/usbhid/hid-core.c
+index 852d74d..f8d4f15 100755
+--- a/drivers/hid/usbhid/hid-core.c
++++ b/drivers/hid/usbhid/hid-core.c
+@@ -1156,6 +1156,61 @@ static int usbhid_probe(struct usb_interface *intf, const struct usb_device_id *
+ 	size_t len;
+ 	int ret;
+ 
++#if 0
++	    printk("HID[gx]: 0x%x, 0x%x, 0x%x,0x%x,0x%x,0x%x,0x%x,0x%x\n",
++	           dev->descriptor.idVendor,
++	           dev->descriptor.idProduct,
++	           dev->descriptor.bDeviceClass,
++	           dev->descriptor.bDeviceProtocol,
++	           dev->descriptor.bDeviceSubClass,
++	           dev->descriptor.bMaxPacketSize0,
++		   dev->descriptor.bcdDevice,
++		   intf->altsetting->desc.bInterfaceNumber
++	           );
++#endif
++
++	if(dev->descriptor.idVendor == 0x04B4
++	   && dev->descriptor.idProduct == 0x1030
++	   && intf->altsetting->desc.bInterfaceNumber == 0x02){
++//		printk("SENSOR HID: 0x%x, 0x%x, 0x%x\n",
++//				dev->descriptor.idVendor,
++//				dev->descriptor.idProduct,
++//				interface->desc.bInterfaceSubClass);
++		return -1;
++	}
++
++	if(dev->descriptor.idVendor == 0x04B4
++	   && dev->descriptor.idProduct == 0x1050
++	   && intf->altsetting->desc.bInterfaceNumber == 0x02){
++//		printk("SENSOR HID: 0x%x, 0x%x, 0x%x\n",
++//				dev->descriptor.idVendor,
++//				dev->descriptor.idProduct,
++//				interface->desc.bInterfaceSubClass);
++		return -1;
++	}
++
++	if(dev->descriptor.idVendor == 0x25a7
++	   && dev->descriptor.idProduct == 0x0851
++	   && intf->altsetting->desc.bInterfaceNumber == 0x04
++	   ){
++		printk("SENSOR HID: 0x%x, 0x%x, 0x%x,interfacenumber:0x%x\n",
++				dev->descriptor.idVendor,
++				dev->descriptor.idProduct,
++				interface->desc.bInterfaceSubClass,intf->altsetting->desc.bInterfaceNumber);
++		return -1;
++	}
++
++	if(dev->descriptor.idVendor ==0X0c45
++	   && dev->descriptor.idProduct ==0x1109
++	   && intf->altsetting->desc.bInterfaceNumber == 0x03
++	   ){
++		printk("SENSOR HID: 0x%x, 0x%x, 0x%x,interfacenumber:0x%x\n",
++				dev->descriptor.idVendor,
++				dev->descriptor.idProduct,
++				interface->desc.bInterfaceSubClass,intf->altsetting->desc.bInterfaceNumber);
++		return -1;
++	}
++
+ 	dbg_hid("HID probe called for ifnum %d\n",
+ 			intf->altsetting->desc.bInterfaceNumber);
+ 

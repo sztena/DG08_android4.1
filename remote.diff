@@ -1,0 +1,359 @@
+diff --git a/drivers/input/remotectl/rkxx_remotectl.c b/drivers/input/remotectl/rkxx_remotectl.c
+index 2277461..d3bf578 100755
+--- a/drivers/input/remotectl/rkxx_remotectl.c
++++ b/drivers/input/remotectl/rkxx_remotectl.c
+@@ -96,6 +96,73 @@ struct rkxx_remotectl_drvdata {
+     //185      //zoom out
+     //186      //zoom in
+   
++static struct rkxx_remote_key_table remote_key_table_0XFF[] = {
++    {0xC1BE, KEY_MENU},
++    {0xB04F, 388},
++    {0xB1CE, KEY_POWER},
++    {0xAA55, KEY_REPLY},
++    {0xA29D, KEY_UP},
++    {0xA897, KEY_DOWN},
++    {0xE21D, KEY_LEFT},
++    {0xA857, KEY_RIGHT},
++    {0x91EE, KEY_VOLUMEDOWN},
++    {0xD1AE, KEY_VOLUMEUP},
++    {0x85FA, KEY_BACK},
++};
++    
++static struct rkxx_remote_key_table remote_key_table_csq_40BF[] = {
++    {0x58, KEY_POWER},
++    {0x68, KEY_VOLUMEDOWN},
++    {0x22, KEY_VOLUMEUP},
++    {0x60, KEY_UP},
++    {0xF8, KEY_DOWN},
++    {0xBA, KEY_LEFT},
++    {0x3A, KEY_RIGHT},
++    {0x78, KEY_REPLY},
++    {0xAA, 402},
++    {0x2A, 87},
++    {0xE8, 88},
++    {0x9A, KEY_HOME},
++    {0x1A, KEY_MENU},
++    {0xD8, KEY_BACK}, 
++};
++
++static struct rkxx_remote_key_table remote_key_table_uvaca[] = {
++    {0x4D, KEY_POWER},
++    {0x43, KEY_MUTE},
++    {0x1A, KEY_HOME},
++    {0x0D, KEY_REPLY},
++    {0x45, KEY_BACK}, 
++    {0x0B, KEY_UP},
++    {0x0E, KEY_DOWN},
++    {0x10, KEY_LEFT},
++    {0x11, KEY_RIGHT},
++    {0x17, KEY_VOLUMEUP},
++    {0x18, KEY_VOLUMEDOWN},
++    {0x42, KEY_SEARCH},
++    {0x1D, KEY_MENU},
++    {0x1F, KEY_VIDEO_PREV},
++    {0x1E, KEY_VIDEO_NEXT},
++    {0x40, KEY_PLAYPAUSE},
++    {0x41, KEY_STOP},
++    {0x01, KEY_1},
++    {0x02, KEY_2},
++    {0x03, KEY_3},
++    {0x04, KEY_4},
++    {0x05, KEY_5},
++    {0x06, KEY_6},
++    {0x07, KEY_7},
++    {0x08, KEY_8},
++    {0x09, KEY_9},
++    {0x00, KEY_0},
++    {0x44, KEY_SPACE},
++    {0x4C, KEY_DELETE},
++    {0x53,	196},		//IE
++    {0x5B,	194},		//video
++    {0x57,	193},		//photo
++    {0x54,	195},		//music
++};
++
+ static struct rkxx_remote_key_table remote_key_table_HJ[] = {
+     {0xd8, KEY_BACK},
+     {0x78, KEY_REPLY},		
+@@ -373,18 +440,12 @@ static struct rkxx_remote_key_table remote_key_table_air_mouse[] = {
+ unsigned char HL_change(unsigned char kd )
+ {
+ 	char i,n_kd=0;
+-	for (i=0;i<8;i++)
+-		{
+-		//	n_kd=(n_kd<< 1)|((kd>>(7-i))&1);
+-			n_kd=n_kd|(((kd>>(7-i))&1)<<i);
+-		//	printk("%i  kd=0x%x  n_kd=0x%x\n",i,kd,n_kd);
+-		}
++	for (i=0;i<8;i++) {
++		n_kd=n_kd|(((kd>>(7-i))&1)<<i);
++	}
+ 	return n_kd;
+ }
+ 
+-extern suspend_state_t get_suspend_state(void);
+-
+-
+ static struct rkxx_remotectl_button remotectl_button[] = 
+ {
+     /*{  
+@@ -408,16 +469,30 @@ static struct rkxx_remotectl_button remotectl_button[] =
+        .key_table = &remote_key_table_HJ[0],
+     },*/
+ 	{  
+-			.usercode = 0x40bf, 
+-			.nbuttons =	17,
+-		 	.key_table = &remote_key_table_dg07new[0],
++		.usercode = 0x40bf, 
++		.nbuttons =	17,
++		.key_table = &remote_key_table_dg07new[0],
+ 	},
+-
+ 	{  
+        .usercode = 0x0202, 
+        .nbuttons =  34, 
+        .key_table = &remote_key_table_Egreat[0],
+     },	
++    {  
++       .usercode = 0xff, 
++       .nbuttons = 11, 
++       .key_table = &remote_key_table_0XFF[0],
++    },
++    {  
++       .usercode = 0x40BF, 
++       .nbuttons = 14, 
++       .key_table = &remote_key_table_csq_40BF[0],
++    },
++    {  
++       .usercode = 0x4040, 
++       .nbuttons =  33, 
++       .key_table = &remote_key_table_uvaca[0],
++    },
+ 
+ #if 0    
+   //----- add at 2012-1110 by chenweichao
+@@ -460,15 +535,11 @@ static int remotectl_keycode_lookup(struct rkxx_remotectl_drvdata *ddata)
+     int i;	
+     unsigned char keyData = ((ddata->scanData >> 8) & 0xff);
+ 
+-    //if(ddata->keybdNum == 3) keyData=HL_change(keyData);
+-	printk("0ddata->keycode=0x%x\n",keyData);
+-	printk("0ddata->keybdNum=0x%x\n",ddata->keybdNum);
+-
++	printk("[NEC-0]INDEX[%d]SCANCODE[0x%x]\n", ddata->keybdNum, keyData);
+     for (i = 0; i < remotectl_button[ddata->keybdNum].nbuttons; i++){
+         if (remotectl_button[ddata->keybdNum].key_table[i].scanCode == keyData){
+-			printk("1ddata->keycode=0x%x\n",remotectl_button[ddata->keybdNum].key_table[i].scanCode);
+-			printk("2ddata->keycode=0x%x\n",keyData);
+             ddata->keycode = remotectl_button[ddata->keybdNum].key_table[i].keyCode;
++			printk("[NEC-1] KEY CODE [%d]\n",ddata->keycode);
+             return 1;
+         }
+     }
+@@ -478,20 +549,12 @@ static int remotectl_keycode_lookup(struct rkxx_remotectl_drvdata *ddata)
+ static int remotectl_keycodeNotNec_lookup(struct rkxx_remotectl_drvdata *ddata)
+ {	
+     int i;	
+-    //unsigned char keyData = ((ddata->scanData >> 8) & 0xff);
+     unsigned int keyData = ddata->scanData;
+-
+-    //if(ddata->keybdNum == 3) keyData=HL_change(keyData);
+-	///printk("10ddata->keycode=0x%x\n",keyData);
+-	///printk("10ddata->keybdNum=0x%x\n",ddata->keybdNum);
+-
++	printk("[UNNEC-0]INDEX[%d]SCANCODE[0x%x]\n", ddata->keybdNum, keyData);
+     for (i = 0; i < remotectl_button[ddata->keybdNum].nbuttons; i++){
+-		
+-		//printk("11ddata->keycode=0x%x\n",remotectl_button[ddata->keybdNum].key_table[i].scanCode);
+         if (remotectl_button[ddata->keybdNum].key_table[i].scanCode == keyData){
+-			//printk("11ddata->keycode=0x%x\n",remotectl_button[ddata->keybdNum].key_table[i].scanCode);
+-			//printk("12ddata->keycode=0x%x\n",keyData);
+             ddata->keycode = remotectl_button[ddata->keybdNum].key_table[i].keyCode;
++			printk("[UNNEC-1] KEY CODE [%d]\n",ddata->keycode);
+             return 1;
+         }
+     }
+@@ -536,7 +599,7 @@ static void remotectl_do_something(unsigned long  data)
+             }
+ 
+             if (ddata->count == 0x10){//16 bit user code
+-                printk("u2222=0x%x\n",((ddata->scanData)&0xFFFF));
++                printk("[UC]=[0x%x]\n",((ddata->scanData)&0xFFFF));
+                 if (remotectl_keybdNum_lookup(ddata)){
+                     ddata->state = RMC_GETDATA;
+                     ddata->scanData = 0;
+@@ -549,82 +612,66 @@ static void remotectl_do_something(unsigned long  data)
+         break;
+         
+         case RMC_GETDATA:
+-        {
+-            ddata->count ++;
+-            ddata->scanData <<= 1;
+-
+-          
+-            if ((TIME_BIT1_MIN < ddata->period) && (ddata->period < TIME_BIT1_MAX)){
+-                ddata->scanData |= 0x01;
+-            }           
+-            if (ddata->count == 0x10){
+-                printk(KERN_ERR "222222d=%x\n",(ddata->scanData&0xFFFF));
+-
+-					if ( 0 ){
+-                    if (remotectl_keycode_lookup(ddata)){
+-                        ddata->press = 1;
+-                         if (get_suspend_state()==0){
+-						 	
+-								printk(KERN_ERR "ddata->keycode=%x\n",(ddata->keycode));
+-                                input_event(ddata->input, EV_KEY, ddata->keycode, 1);
+-                                input_sync(ddata->input);
+-                            }else if ((get_suspend_state())&&(ddata->keycode==KEY_POWER)){
+-							//jj_modify add by pirlo for solve the problem (the second suspend later,two powerkey down must to resume system 2013.01.16)
+-                            	input_event(ddata->input, EV_KEY, KEY_WAKEUP, 0);
+-	            				input_sync(ddata->input);
+-                                input_event(ddata->input, EV_KEY, KEY_WAKEUP, 1);
+-                                input_sync(ddata->input);
+-                            }
+-                        //input_event(ddata->input, EV_KEY, ddata->keycode, ddata->press);
+-		                //input_sync(ddata->input);
+-                        ddata->state = RMC_SEQUENCE;
+-                    }else{
+-                        ddata->state = RMC_PRELOAD;
+-                    }
+-                }else{
++		{
++			ddata->count ++;
++			ddata->scanData <<= 1;
++
++			if ((TIME_BIT1_MIN < ddata->period) && (ddata->period < TIME_BIT1_MAX)){
++				ddata->scanData |= 0x01;
++			}           
++			if (ddata->count == 0x10){
++				printk("[KEY-CODE]=[0x%x]\n",(ddata->scanData&0xFFFF));
++				/* nec port switch . mark by marco.*/
++				if ( 0 ){
++					if (remotectl_keycode_lookup(ddata)){
++						ddata->press = 1;
++						int suspend = get_suspend_state();
++						printk("[SUSPEND STATE]=[%d]\n", suspend);
++						if (suspend == 0){
++							printk(KERN_ERR "[SEND-NEC-KEY]=[%d]\n",(ddata->keycode));
++							input_event(ddata->input, EV_KEY, ddata->keycode, 1);
++							input_sync(ddata->input);
++						}else if ((get_suspend_state())&&(ddata->keycode==KEY_POWER)){
++							input_event(ddata->input, EV_KEY, KEY_WAKEUP, 0);
++							input_sync(ddata->input);
++							input_event(ddata->input, EV_KEY, KEY_WAKEUP, 1);
++							input_sync(ddata->input);
++						}
++						ddata->state = RMC_SEQUENCE;
++					}else{
++						ddata->state = RMC_PRELOAD;
++					}
++				}else{
+ 
+-					#if 0
++#if 0
+ 					ddata->state = RMC_PRELOAD;
+-					#else
+-					if (remotectl_keycodeNotNec_lookup(ddata))
+-					{
++#else
++					if (remotectl_keycodeNotNec_lookup(ddata)) {
+ 						ddata->press = 1;
+-						if (get_suspend_state()==0)
+-						{
+-							printk(KERN_ERR "ddata->keycodeqwewqe=%x\n",(ddata->keycode));
++						int suspend = get_suspend_state();
++						printk("[SUSPEND STATE]=[%d]\n", suspend);
++						if (suspend == 0){
++							printk(KERN_ERR "[SEND-UNNEC-KEY]=[%d]\n",(ddata->keycode));
+ 							input_event(ddata->input, EV_KEY, ddata->keycode, 1);
+ 							input_sync(ddata->input);
+-						}
+-						else if ((get_suspend_state())&&(ddata->keycode==KEY_POWER))
+-						{
+-							//jj_modify add by pirlo for solve the problem (the second suspend later,two powerkey down must to resume system 2013.01.16)
+-							printk(KERN_ERR "ddata->keycodeqwe=%x\n",(ddata->keycode));
++						} else if ((get_suspend_state())&&(ddata->keycode==KEY_POWER)) {
++							printk(KERN_ERR "[SEND-UNNEC-KEY]=[%d]\n",(ddata->keycode));
+ 							input_event(ddata->input, EV_KEY, KEY_WAKEUP, 0);
+-	            			input_sync(ddata->input);
+-							//jj_modify end
++							input_sync(ddata->input);
+ 							input_event(ddata->input, EV_KEY, KEY_WAKEUP, 1);
+ 							input_sync(ddata->input);
+ 						}
+-						//input_event(ddata->input, EV_KEY, ddata->keycode, ddata->press);
+-						//input_sync(ddata->input);
+ 						ddata->state = RMC_SEQUENCE;
+-
+-					}
+-					else
+-					{
++					} else {
+ 						ddata->state = RMC_PRELOAD;
+ 					}
+-					}
+-
+-					#endif
+-                }
+-        }
++				}
++#endif
++			}
++		}
+         break;
+              
+         case RMC_SEQUENCE:{
+-
+-            //printk( "S\n");
+-            
+             if ((TIME_RPT_MIN < ddata->period) && (ddata->period < TIME_RPT_MAX)){
+                 ;
+             }else if ((TIME_SEQ_MIN < ddata->period) && (ddata->period < TIME_SEQ_MAX)){
+@@ -632,11 +679,7 @@ static void remotectl_do_something(unsigned long  data)
+                     ddata->press = 3;
+                 }else if (ddata->press & 0x2){
+                     ddata->press = 2;
+-                //input_event(ddata->input, EV_KEY, ddata->keycode, 2);
+-		            //input_sync(ddata->input);
+                 }
+-                //mod_timer(&ddata->timer,jiffies + msecs_to_jiffies(130));
+-                //ddata->state = RMC_PRELOAD;
+             }
+         }
+         break;
+@@ -684,7 +727,6 @@ void remotectl_wakeup(unsigned long _data)
+             if (ddata->count == 0x10){//16 bit user code
+                           
+                 if (ddata->state == RMC_USERCODE){
+-//                    printk(KERN_ERR "d=%x\n",(ddata->scanData&0xFFFF));  
+                     if (remotectl_keybdNum_lookup(ddata)){
+                         ddata->scanData = 0;
+                         ddata->count = 0;
+@@ -694,7 +736,6 @@ void remotectl_wakeup(unsigned long _data)
+                     }
+                 }else if (ddata->state == RMC_GETDATA){
+                     if ((ddata->scanData&0x0ff) == ((~ddata->scanData >> 8)&0x0ff)){
+-//                        printk(KERN_ERR "d=%x\n",(ddata->scanData&0xFFFF));
+                         if (remotectl_keycode_lookup(ddata)){
+                              if (ddata->keycode==KEY_POWER){
+                                 input_event(ddata->input, EV_KEY, KEY_WAKEUP, 1);
+@@ -734,17 +775,11 @@ static void remotectl_timer(unsigned long _data)
+         ddata->pre_press = ddata->press = 0;
+ 
+         if (get_suspend_state()==0){
+-            //input_event(ddata->input, EV_KEY, ddata->keycode, 1);
+-            //input_sync(ddata->input);
+-            
+-			printk("remotectl_timer3 ddata->keycode=0x%x\n",ddata->keycode);
+-			printk("remotectl_timer3 ddata->keycode=0x%x\n",ddata->scanData);
+             input_event(ddata->input, EV_KEY, ddata->keycode, 0);
+ 		    input_sync(ddata->input);
+         }else if ((get_suspend_state())&&(ddata->keycode==KEY_POWER)){
+             //input_event(ddata->input, EV_KEY, KEY_WAKEUP, 1);
+             //input_sync(ddata->input);
+-	            //jj_modify remove  by pirlo for solve the problem (the second suspend later,two powerkey down must to resume system 2013.01.16)
+ #if 0
+             input_event(ddata->input, EV_KEY, KEY_WAKEUP, 0);
+             input_sync(ddata->input);

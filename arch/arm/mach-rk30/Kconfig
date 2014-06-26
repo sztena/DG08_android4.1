@@ -1,0 +1,72 @@
+
+if ARCH_RK30
+
+choice
+	prompt "RK3066-tena-dg08 Projects Choose "
+	default IMT_RK3066_DEFAULT
+	help
+		choose kernel for specific project
+
+config IMT_RK3066_DEFAULT
+  	bool "project: rk3066 default"
+	help	 
+	   kernel for rk3066 default
+
+config IMT_RK3066_DG08
+  	bool "project: rk3066 tena dg08"
+	help	 
+	   kernel for tena dg08
+	
+config IMT_RK3066_MEDIALINK
+  	bool "project: rk3066 medialink"
+	help	 
+	   kernel for medialink
+
+config TN_RK3066_BX05
+  	bool "project: rk3066 tena bx05"
+	help	 
+	   kernel for tena bx05
+
+config TN_RK3066_BX07
+  	bool "project: rk3066 tena bx07"
+	help	 
+	   kernel for tena bx07
+
+endchoice
+
+
+
+choice
+	prompt "RK30xx Board Type"
+	default MACH_RK30_SDK
+
+config MACH_RK30_SDK
+	bool "RK30 SDK board"
+
+config MACH_RK3066_SDK
+	bool "RK3066 SDK board"
+
+config MACH_RK30_PHONE
+	bool "RK30 smart phone board"
+	
+##$_rbox_$_modify_begin
+config MACH_RK30_BOX
+	bool "RK30 itv box hamburger board"
+	
+config MACH_RK30_BOX_PIZZA
+	bool "RK30 itv box pizza board"
+	
+config MACH_RK30_BOX_HOTDOG
+	bool "RK30 itv box hotdog board"
+		
+##$_rbox_$_modify_end
+
+config MACH_RK30_PHONE_LOQUAT
+	bool "RK30 smart phone loquat board"
+
+config MACH_RK30_PHONE_A22
+        bool "RK30 smart phone a22 board"
+	
+endchoice
+
+endif
